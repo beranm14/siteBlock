@@ -5,20 +5,11 @@
 
 import os.path
 import subprocess
-
-def runProcess(exe):
-	""" Method for lunching command
-	\param exe String containg command
-	\return Yielding line by line output from subprocess
-	"""
-	exe=exe.split()    
-	p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	while(True):
-		retcode = p.poll()
-		line = p.stdout.readline()
-		yield line
-		if(retcode is not None):
-			break
+from NetstPar import NetstPar
+from RdList import RdList
+from BlockDom import BlockDom
+from WhatBlock import WhatBlock
+import time
 
 class Chdir:
 	""" \brief Class for rewriting path
@@ -38,4 +29,46 @@ class Chdir:
 		os.chdir( self.savedPath)
 
 if __name__ == "__main__":
-	cd=Chdir("/opt/mediDbase/")
+	cd=Chdir("/opt/siteBlock/")
+	# Getting what to block
+	w=WhatBlock()
+	# Loading nestat
+	net=NetstPar()
+	# loading malicious words and domains
+	rd=RdList()
+	ld=rd.loadLsDom()
+	lw=rd.loadLsNst()
+	# blocking class
+	bd=BlockDom()
+	
+	print w.getBl()
+	
+	
+	while 1:
+		listCn=net.getList()
+		dms=[]
+		for i in listCn:
+			if i['dns_d'].replace(" ","") == "":
+				continue
+			for k in ld:
+				if i['dns_d'].find(k) != -1 :
+					if w.getBl() == "domains":
+						bd.blDom(i['dns_d'])
+					elif w.getBl() == "all":
+						bd.blAll(i['dns_d'])
+			if i['dns_d']:
+				dms.append(i['dns_d'])
+		for i in lw:
+			for j in dms:
+				if j.find(i) != -1:
+					if w.getBl() == "domains":
+						bd.blDom(j)
+					elif w.getBl() == "all":
+						bd.blAll(j)
+		if w.getBl() == "domains":
+			bd.unBlDom()
+		elif w.getBl() == "all":
+			bd.unBlAll()
+			
+		
+		time.sleep(4)

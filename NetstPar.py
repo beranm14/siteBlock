@@ -96,5 +96,5 @@ class NetstPar:
 		"""
 		return str(int(hex,16))
 		
-n=NetstPar()
-print n.getList()
+#n=NetstPar()
+#print n.getList()

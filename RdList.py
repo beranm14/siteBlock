@@ -20,7 +20,13 @@ class RdList:
 		""" Method for updating the list
 		"""
 		j=0
-		res= urllib2.urlopen(csvDwn)
+		try:
+			res= urllib2.urlopen(csvDwn)
+		except urllib2.URLError:
+			print "Unable to connect to " + csvDwn
+			return
+		
+		#res= urllib2.urlopen(csvDwn)
 		cn = res.read().split("\n")
 		tod=""
 		try:
@@ -48,7 +54,11 @@ class RdList:
 		""" Method for updating the list
 		"""
 		j=0
-		res= urllib2.urlopen(csvDwn)
+		try:
+			res= urllib2.urlopen(csvDwn)
+		except urllib2.URLError:
+			print "Unable to connect to " + csvDwn
+			return
 		cn = res.read().split("\n")
 		tod=""
 		try:

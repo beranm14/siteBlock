@@ -8,7 +8,7 @@ from Queue import Empty, Full
 
 class ReadConn:
 	def __init__(self):
-		exe=["tshark","-R","tcp.port==80","-T","fields","-e","text"]
+		exe=["tshark","-Y","tcp.port==80","-T","fields","-e","text","-W","n"]
 		self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		self.pid = self.p.pid
 	def getCt(self,qi=None,qo=None):

@@ -23,14 +23,21 @@ class BlockDom:
 			if tm.isdigit():
 				self.time=int(tm)
 			f.close()
+		self.tdl=0
+		self.blocking=False
 	def blAll(self):
 		""" Block all
 		"""
-		rt = subprocess.Popen(['./block.sh'])
-		syslog.syslog("Blocking network access, beacause somebody called not nice webpage!")
+		if self.blocking == False:
+			rt = subprocess.Popen(['./block.sh'])
+			syslog.syslog("Blocking network access, beacause somebody called not nice webpage!")
+			self.tdl = time.time()
+			self.blocking = True
 	def unBlAll(self):
 		""" Block all
 		"""
-		rt = subprocess.Popen(['./unblock.sh'])
-		syslog.syslog("Unblocking network access, timeout has been reached!")
+		if self.blocking == True and (self.tdl + self.time*60) < time.time():
+			self.blocking = False
+			rt = subprocess.Popen(['./unblock.sh'])
+			syslog.syslog("Unblocking network access, timeout has been reached!")
 		

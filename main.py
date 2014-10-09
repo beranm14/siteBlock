@@ -33,17 +33,17 @@ def b(qi,qo):
 	ls=RdList().loadLsNst()
 	while True:
 		cn=qo.get(True)
+		bd.unBlAll()
 		if cn == "ReadConnEND":
 			print("Blocker ending!")
 			bd.unBlAll()
 			return
 		print cn
 		for i in ls:
-			if i in cn:
+			if " " + i + " " in cn:
 				print i + " FOUNDED in " + cn
 				bd.blAll()
-				time.sleep(bd.time*60)
-				bd.unBlAll()
+				break
 
 def f(qi,qo):
 	r.getCt(qi,qo)

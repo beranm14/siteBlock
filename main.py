@@ -3,72 +3,72 @@
 ## \file main.py
 ## \brief Louncher method
 
-import os.path
-import subprocess
-from NetstPar import NetstPar
+from ReadConn import ReadConn
 from RdList import RdList
 from BlockDom import BlockDom
-from WhatBlock import WhatBlock
+import multiprocessing
+from Queue import Empty, Full
+import signal
 import time
+import sys
+import os
 
-class Chdir:
-	""" \brief Class for rewriting path
+
+def signalHandler(signal, frame):
+	""" Signal catcher
+	\param signal Signal sended
+	\param frame Name of function
 	"""
-	def __init__( self, newPath ):
-		""" Constructor of the class
-		\param self Pointer on class
-		\param newPath New path
-		"""
-		## Saved path
-		self.savedPath = os.getcwd()
-		os.chdir(newPath)
-	def __del__( self ):
-		""" Desctructor on class
-		\param self Pointer on class
-		"""
-		os.chdir( self.savedPath)
+	oid=os.getpid()	
+	qi.put("END")
+	for line in os.popen("ps -Al"):
+		fields = line.split()
+		ppid = fields[4]
+		name = fields[-1]
+		if name == "tshark" and int(ppid) == oid:
+			os.kill(int(fields[3]),2)
+
+def b(qi,qo):
+	bd=BlockDom()
+	ls=RdList().loadLsNst()
+	while True:
+		cn=qo.get(True)
+		if cn == "ReadConnEND":
+			print("Blocker ending!")
+			bd.unBlAll()
+			return
+		print cn
+		for i in ls:
+			if i in cn:
+				print i + " FOUNDED in " + cn
+				bd.blAll()
+				time.sleep(bd.time*60)
+				bd.unBlAll()
+
+def f(qi,qo):
+	r.getCt(qi,qo)
 
 if __name__ == "__main__":
-	cd=Chdir("/opt/siteBlock/")
-	# Getting what to block
-	w=WhatBlock()
-	# Loading nestat
-	net=NetstPar()
-	# loading malicious words and domains
-	rd=RdList()
-	ld=rd.loadLsDom()
-	lw=rd.loadLsNst()
-	# blocking class
-	bd=BlockDom()
-	
-	print w.getBl()
-	
-	
-	while 1:
-		listCn=net.getList()
-		dms=[]
-		for i in listCn:
-			if i['dns_d'].replace(" ","") == "":
-				continue
-			for k in ld:
-				if i['dns_d'].find(k) != -1 :
-					if w.getBl() == "domains":
-						bd.blDom(i['dns_d'])
-					elif w.getBl() == "all":
-						bd.blAll(i['dns_d'])
-			if i['dns_d']:
-				dms.append(i['dns_d'])
-		for i in lw:
-			for j in dms:
-				if j.find(i) != -1:
-					if w.getBl() == "domains":
-						bd.blDom(j)
-					elif w.getBl() == "all":
-						bd.blAll(j)
-		if w.getBl() == "domains":
-			bd.unBlDom()
-		elif w.getBl() == "all":
-			bd.unBlAll()
-			
-		
-		time.sleep(4)
+	signal.signal(signal.SIGINT, signalHandler)
+	signal.signal(signal.SIGQUIT, signalHandler)
+
+	r=ReadConn()
+
+	## Input queue
+	global qi
+	qi = multiprocessing.Queue()
+	qi.cancel_join_thread()
+	## Output queue
+	global qo 
+	qo = multiprocessing.Queue()
+	qo.cancel_join_thread()
+
+	gen=multiprocessing.Process(target=f,args=[qi,qo])
+	blo=multiprocessing.Process(target=b,args=[qi,qo])
+
+	gen.start()
+	blo.start()
+
+	gen.join()
+	blo.join()
+

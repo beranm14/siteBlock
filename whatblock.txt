@@ -1,5 +1,0 @@
-domains
-# what to block
-# all - block all conections
-# domains - blocking not nice domain
-# default is all

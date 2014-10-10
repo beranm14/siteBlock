@@ -1,0 +1,74 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+## \file main.py
+## \brief Louncher method
+
+from ReadConn import ReadConn
+from RdList import RdList
+from BlockDom import BlockDom
+import multiprocessing
+from Queue import Empty, Full
+import signal
+import time
+import sys
+import os
+
+
+def signalHandler(signal, frame):
+	""" Signal catcher
+	\param signal Signal sended
+	\param frame Name of function
+	"""
+	oid=os.getpid()	
+	qi.put("END")
+	for line in os.popen("ps -Al"):
+		fields = line.split()
+		ppid = fields[4]
+		name = fields[-1]
+		if name == "tshark" and int(ppid) == oid:
+			os.kill(int(fields[3]),2)
+
+def b(qi,qo):
+	bd=BlockDom()
+	ls=RdList().loadLsNst()
+	while True:
+		cn=qo.get(True)
+		bd.unBlAll()
+		if cn == "ReadConnEND":
+			print("Blocker ending!")
+			bd.unBlAll()
+			return
+		print cn
+		for i in ls:
+			if " " + i + " " in cn:
+				print i + " FOUNDED in " + cn
+				bd.blAll()
+				break
+
+def f(qi,qo):
+	r.getCt(qi,qo)
+
+if __name__ == "__main__":
+	signal.signal(signal.SIGINT, signalHandler)
+	signal.signal(signal.SIGQUIT, signalHandler)
+
+	r=ReadConn()
+
+	## Input queue
+	global qi
+	qi = multiprocessing.Queue()
+	qi.cancel_join_thread()
+	## Output queue
+	global qo 
+	qo = multiprocessing.Queue()
+	qo.cancel_join_thread()
+
+	gen=multiprocessing.Process(target=f,args=[qi,qo])
+	blo=multiprocessing.Process(target=b,args=[qi,qo])
+
+	gen.start()
+	blo.start()
+
+	gen.join()
+	blo.join()
+

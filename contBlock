@@ -12,7 +12,7 @@ import signal
 import time
 import sys
 import os
-
+import re
 
 def signalHandler(signal, frame):
 	""" Signal catcher
@@ -40,19 +40,21 @@ def b(qi,qo):
 			return
 		print cn
 		for i in ls:
-			if " " + i + " " in cn:
+			#print "XXXXX" + "(^| |,|\.)" + i + "( |$|,|\.)" + cn
+			m = re.search("(^| |,|\.)" + i + "( |$|,|\.|\\\\)",cn,re.IGNORECASE)
+			if m is not None:
 				print i + " FOUNDED in " + cn
 				bd.blAll()
 				break
 
 def f(qi,qo):
+	r=ReadConn()
 	r.getCt(qi,qo)
 
 if __name__ == "__main__":
 	signal.signal(signal.SIGINT, signalHandler)
 	signal.signal(signal.SIGQUIT, signalHandler)
 
-	r=ReadConn()
 
 	## Input queue
 	global qi

@@ -7,17 +7,15 @@ import subprocess
 from Queue import Empty, Full
 
 class ReadConn:
-	def __init__(self):
-		exe=["tshark","-Y","tcp.port==80","-T","fields","-e","text","-W","n"]
-		self.p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		self.pid = self.p.pid
 	def getCt(self,qi=None,qo=None):
+		exe=["tshark","-Y","tcp.port==80","-T","fields","-e","text","-W","n"]
+		p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		if qi == None and qo == None:
 			print "NONE"
 			return
 		while(True):
-			retcode = self.p.poll()
-			line = self.p.stdout.readline()
+			retcode = p.poll()
+			line = p.stdout.readline()
 			qo.put(line)
 			try:
 				inp=qi.get(0)

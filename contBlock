@@ -3,6 +3,14 @@
 ## \file main.py
 ## \brief Louncher method
 
+import os
+import sys
+
+if __name__ == "__main__":
+	if os.geteuid() != 0:
+		print "this program requires super user priv."
+		sys.exit(1)
+
 from ReadConn import ReadConn
 from RdList import RdList
 from BlockDom import BlockDom
@@ -11,7 +19,6 @@ from Queue import Empty, Full
 import signal
 import time
 import sys
-import os
 import re
 
 def signalHandler(signal, frame):
@@ -20,6 +27,8 @@ def signalHandler(signal, frame):
 	\param frame Name of function
 	"""
 	oid=os.getpid()	
+	qi.put("END")	
+	qi.put("END")	
 	qi.put("END")
 	for line in os.popen("ps -Al"):
 		fields = line.split()
@@ -38,9 +47,7 @@ def b(qi,qo):
 			print("Blocker ending!")
 			bd.unBlAll()
 			return
-		print cn
 		for i in ls:
-			#print "XXXXX" + "(^| |,|\.)" + i + "( |$|,|\.)" + cn
 			m = re.search("(^| |,|\.)" + i + "( |$|,|\.|\\\\)",cn,re.IGNORECASE)
 			if m is not None:
 				print i + " FOUNDED in " + cn
@@ -51,7 +58,24 @@ def f(qi,qo):
 	r=ReadConn()
 	r.getCt(qi,qo)
 
+def t(qi,qo):
+	while True:
+		time.sleep(10)
+		qo.put("Wake")
+		try:
+			inp=qi.get(0)
+		except Empty:
+			continue
+		else:
+			if inp == "END":
+				print("Getter ending")
+				qo.put("ReadConnEND")
+				return
+
 if __name__ == "__main__":
+	if os.geteuid() != 0:
+		print "this program requires super user priv."
+		sys.exit(1)
 	signal.signal(signal.SIGINT, signalHandler)
 	signal.signal(signal.SIGQUIT, signalHandler)
 
@@ -67,10 +91,12 @@ if __name__ == "__main__":
 
 	gen=multiprocessing.Process(target=f,args=[qi,qo])
 	blo=multiprocessing.Process(target=b,args=[qi,qo])
+	tim=multiprocessing.Process(target=t,args=[qi,qo])
 
+	tim.start()
 	gen.start()
 	blo.start()
 
 	gen.join()
 	blo.join()
-
+	tim.join()

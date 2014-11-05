@@ -8,13 +8,16 @@ from Queue import Empty, Full
 
 class ReadConn:
 	def getCt(self,qi=None,qo=None):
-		exe=["tshark","-Y","tcp.port==80","-T","fields","-e","text","-W","n"]
+		#exe=["kill","-i","any","-Y","tcp.port==80","-T","fields","-e","text","-W","n"]
+		exe=["tshark","-i","any","-Y","tcp.port==80","-T","fields","-e","text","-W","n"]
 		p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		if qi == None and qo == None:
 			print "NONE"
 			return
 		while(True):
 			retcode = p.poll()
+			if(retcode is not None):
+				return
 			line = p.stdout.readline()
 			qo.put(line)
 			try:
